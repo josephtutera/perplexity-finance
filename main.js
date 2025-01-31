@@ -1,5 +1,9 @@
 const { app, BrowserWindow, session } = require('electron')
 const path = require('path')
+require('dotenv').config()
+
+// Suppress security warnings
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
 let mainWindow = null
 
@@ -28,6 +32,16 @@ function createWindow () {
             requestHeaders: {
                 ...details.requestHeaders,
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        })
+    })
+
+    // Configure CSP for WebSocket and suppress warnings
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': ["default-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.perplexity.ai https://*.perplexity.ai https://*.finnhub.io; connect-src 'self' https://finnhub.io"]
             }
         })
     })

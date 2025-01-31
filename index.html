@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://www.perplexity.ai https://*.perplexity.ai">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.perplexity.ai https://*.perplexity.ai https://*.finnhub.io; connect-src 'self' https://finnhub.io">
     <title>Stock Watchlist</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -40,7 +40,6 @@
                 src="about:blank"
                 partition="persist:main"
                 allowpopups
-                nodeintegration
                 webpreferences="contextIsolation=false"
                 useragent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 style="width:100%; height:100%;">

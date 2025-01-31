@@ -15,9 +15,11 @@
     "webviewTag": true
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "electron-squirrel-startup": "^1.0.1"
   },
   "devDependencies": {
-    "electron": "^34.0.2"
+    "electron": "^34.0.2",
+    "finnhub": "^1.2.19"
   }
 }
