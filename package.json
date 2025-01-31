@@ -1,0 +1,23 @@
+{
+  "name": "stocks-watchlist",
+  "version": "1.0.0",
+  "description": "Stock watchlist with Perplexity Finance integration",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --no-sandbox --disable-gpu-sandbox --enable-logging",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "webPreferences": {
+    "nodeIntegration": true,
+    "contextIsolation": false,
+    "webviewTag": true
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.1"
+  },
+  "devDependencies": {
+    "electron": "^34.0.2"
+  }
+}
