@@ -22,23 +22,28 @@ function createWindow () {
     })
 
     // Configure session
-    const webviewSession = session.fromPartition('persist:main')
+    const webviewSession = session.fromPartition('persist:perplexity')
+    
+    // Set persistent permissions
     webviewSession.setPermissionRequestHandler((webContents, permission, callback) => {
         callback(true)
     })
 
-    // Configure headers
+    // Configure headers and cookies
     webviewSession.webRequest.onBeforeSendHeaders((details, callback) => {
         callback({
             requestHeaders: {
                 ...details.requestHeaders,
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Upgrade-Insecure-Requests': '1'
             }
         })
     })
 
-    // Configure CSP for WebSocket and suppress warnings
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    // Configure CSP and other response headers
+    webviewSession.webRequest.onHeadersReceived((details, callback) => {
         callback({
             responseHeaders: {
                 ...details.responseHeaders,
@@ -46,6 +51,15 @@ function createWindow () {
             }
         })
     })
+
+    // Enable cookies
+    webviewSession.cookies.set({
+        url: 'https://www.perplexity.ai',
+        name: 'session_persist',
+        value: 'true',
+        domain: '.perplexity.ai',
+        path: '/'
+    }).catch(console.error)
 
     mainWindow.loadFile('index.html')
 

@@ -135,6 +135,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const addButton = document.getElementById('addButton');
     const perplexityView = document.getElementById('perplexityView');
     
+    // Initialize webview with first stock if available
+    if (perplexityView) {
+        const activeWatchlist = getActiveWatchlist();
+        if (activeWatchlist.symbols.length > 0) {
+            const firstStock = activeWatchlist.symbols[0];
+            loadPerplexityURL(firstStock.symbol);
+            
+            // Set up webview event listeners
+            perplexityView.addEventListener('dom-ready', () => {
+                console.log('Webview DOM Ready');
+                // Add class to mark the first stock as selected
+                const firstStockElement = document.querySelector('.stock-item');
+                if (firstStockElement) {
+                    firstStockElement.classList.add('selected');
+                }
+            });
+
+            perplexityView.addEventListener('did-fail-load', (event) => {
+                console.error('Failed to load:', event);
+            });
+
+            perplexityView.addEventListener('did-finish-load', () => {
+                console.log('Finished loading');
+            });
+        }
+    }
+
     // Add last updated span to header
     const lastUpdatedSpan = document.createElement('span');
     lastUpdatedSpan.className = 'header-last-updated';
@@ -230,7 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const url = `https://www.perplexity.ai/finance/${encodeURIComponent(symbol)}`;
-            perplexityView.setAttribute('src', url);
+            // Check if the webview is already navigating to prevent unnecessary reloads
+            if (perplexityView.getAttribute('src') !== url) {
+                perplexityView.setAttribute('src', url);
+            }
         } catch (error) {
             console.error('Error loading URL:', error);
         }
@@ -369,21 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addStock();
         }
     });
-
-    // Set up webview event listeners
-    if (perplexityView) {
-        perplexityView.addEventListener('dom-ready', () => {
-            console.log('Webview DOM Ready');
-        });
-
-        perplexityView.addEventListener('did-fail-load', (event) => {
-            console.error('Failed to load:', event);
-        });
-
-        perplexityView.addEventListener('did-finish-load', () => {
-            console.log('Finished loading');
-        });
-    }
 
     // Initial render
     renderWatchlistTabs();
