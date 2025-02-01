@@ -47,7 +47,7 @@ function createWindow () {
         callback({
             responseHeaders: {
                 ...details.responseHeaders,
-                'Content-Security-Policy': ["default-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.perplexity.ai https://*.perplexity.ai https://*.finnhub.io; connect-src 'self' https://finnhub.io"]
+                'Content-Security-Policy': ["default-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.perplexity.ai https://*.perplexity.ai https://*.finnhub.io https://*.cloudflare.com; connect-src 'self' https://finnhub.io https://*.cloudflare.com; worker-src blob: 'self'; img-src 'self' data: https://www.perplexity.ai https://*.perplexity.ai https://*.cloudflare.com"]
             }
         })
     })
