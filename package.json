@@ -1,7 +1,7 @@
 {
-  "name": "stocks-watchlist",
+  "name": "perplexity-finance",
   "version": "1.0.0",
-  "description": "Stock watchlist with Perplexity Finance integration",
+  "description": "Perplexity Finance - Real-time stock tracking with AI-powered insights",
   "main": "main.js",
   "scripts": {
     "start": "electron . --no-sandbox --disable-gpu-sandbox --enable-logging",
