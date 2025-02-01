@@ -23,6 +23,15 @@
     --spacing-lg: 16px;
 }
 
+/* Light mode variables */
+body:not(.dark-mode) {
+    --background-dark: #ffffff;
+    --background-light: #f5f5f7;
+    --text-primary: #1d1d1f;
+    --text-secondary: #6e6e73;
+    --border-color: #d2d2d7;
+}
+
 * {
     margin: 0;
     padding: 0;
