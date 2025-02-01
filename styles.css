@@ -137,10 +137,13 @@ body {
 }
 
 .header-last-updated {
+    font-family: var(--font-primary);
     font-size: 0.7rem;
     color: var(--text-secondary);
-    font-style: italic;
     letter-spacing: -0.01em;
+    margin-left: var(--spacing-sm);
+    white-space: nowrap;
+    opacity: 0.8;
 }
 
 .watchlist {

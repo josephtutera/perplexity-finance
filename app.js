@@ -108,18 +108,14 @@ let updateInterval = null;
 
 // Function to format timestamp
 function formatLastUpdated(timestamp) {
-    const now = Date.now();
-    const diff = now - timestamp;
+    const date = new Date(timestamp);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = (hours % 12) || 12;
     
-    if (diff < 60000) { // less than 1 minute
-        return 'Just now';
-    } else if (diff < 3600000) { // less than 1 hour
-        const minutes = Math.floor(diff / 60000);
-        return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    } else {
-        const hours = Math.floor(diff / 3600000);
-        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    }
+    return `Updated at ${hours12}:${minutes}:${seconds} ${ampm}`;
 }
 
 // Function to format symbol for Finnhub
