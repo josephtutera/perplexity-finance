@@ -5,10 +5,28 @@
   "main": "main.js",
   "scripts": {
     "start": "electron . --no-sandbox --disable-gpu-sandbox --enable-logging",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "author": "",
   "license": "ISC",
+  "build": {
+    "appId": "com.perplexity.finance",
+    "productName": "Perplexity Finance",
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": ["dmg", "zip"],
+      "icon": "logo.png"
+    },
+    "files": [
+      "**/*",
+      "!.env"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
   "webPreferences": {
     "nodeIntegration": true,
     "contextIsolation": false,
@@ -20,6 +38,7 @@
   },
   "devDependencies": {
     "electron": "^34.0.2",
+    "electron-builder": "^24.9.1",
     "finnhub": "^1.2.19"
   }
 }

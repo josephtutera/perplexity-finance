@@ -3,6 +3,7 @@ node_modules/
 
 # Environment variables
 .env
+config.js
 
 # OS generated files
 .DS_Store
@@ -12,3 +13,6 @@ node_modules/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Build output
+dist/
