@@ -337,8 +337,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastUpdatedSpan = document.createElement('span');
     lastUpdatedSpan.className = 'header-last-updated';
     lastUpdatedSpan.textContent = 'Just now';
-    document.querySelector('.watchlist-header').appendChild(lastUpdatedSpan);
-
+    
+    // Update watchlist header structure
+    const watchlistHeader = document.querySelector('.watchlist-header');
+    watchlistHeader.innerHTML = `
+        <div class="watchlist-header-row">
+            <h2>My Symbols</h2>
+            <span class="header-last-updated">Just now</span>
+        </div>
+    `;
+    
     // Create watchlist tabs container
     const watchlistTabsContainer = document.createElement('div');
     watchlistTabsContainer.className = 'watchlist-tabs';
@@ -351,30 +359,91 @@ document.addEventListener('DOMContentLoaded', () => {
     function showWatchlistSelectionDialog(symbol) {
         const dialog = document.createElement('div');
         dialog.className = 'watchlist-dialog';
-        dialog.innerHTML = `
-            <div class="dialog-content">
-                <h3>Add ${symbol} to watchlist:</h3>
-                <div class="watchlist-options">
-                    ${watchlists.map(w => `
-                        <div class="watchlist-option" data-id="${w.id}">
-                            <span>${w.name}</span>
-                            <span class="symbol-count">${w.symbols.length}</span>
-                        </div>
-                    `).join('')}
+        
+        function renderDialogContent(isDeleteMode = false) {
+            dialog.innerHTML = `
+                <div class="dialog-content">
+                    <div class="dialog-header">
+                        <h3>${isDeleteMode ? 'Delete Watchlist' : `Add ${symbol} to watchlist:`}</h3>
+                        <span class="dialog-mode-text">${isDeleteMode ? 'Release Alt/Option to cancel' : 'Hold Alt/Option to delete watchlists'}</span>
+                    </div>
+                    <div class="watchlist-options">
+                        ${watchlists.map(w => `
+                            <div class="watchlist-option ${isDeleteMode ? 'delete-mode' : ''}" data-id="${w.id}">
+                                <span>${w.name}</span>
+                                ${isDeleteMode ? 
+                                    '<span class="delete-mode-text">Click to Delete</span>' : 
+                                    `<span class="symbol-count">${w.symbols.length}</span>`
+                                }
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
 
+        // Initial render
+        renderDialogContent();
+
+        // Handle Alt/Option key
+        function handleKeyChange(e) {
+            if (e.altKey) {
+                renderDialogContent(true);
+            } else {
+                renderDialogContent(false);
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyChange);
+        document.addEventListener('keyup', handleKeyChange);
+
+        // Handle clicks
         dialog.addEventListener('click', (e) => {
             const option = e.target.closest('.watchlist-option');
             if (option) {
                 const watchlistId = option.dataset.id;
-                if (addSymbolToWatchlist(symbol, watchlistId)) {
-                    updateStockData(getActiveWatchlist().symbols.find(s => s.symbol === symbol)).then(() => {
+                const isDeleteMode = e.altKey;
+
+                if (isDeleteMode) {
+                    // Don't delete if it's the last watchlist
+                    if (watchlists.length <= 1) {
+                        return;
+                    }
+                    
+                    // Delete watchlist
+                    const index = watchlists.findIndex(w => w.id === watchlistId);
+                    if (index !== -1) {
+                        watchlists.splice(index, 1);
+                        // If we deleted the active watchlist, switch to the first available one
+                        if (watchlistId === activeWatchlistId) {
+                            activeWatchlistId = watchlists[0].id;
+                        }
+                        saveWatchlists();
+                        renderWatchlistTabs();
                         renderWatchlist();
-                    });
+                    }
+                } else {
+                    // Add symbol to watchlist
+                    if (addSymbolToWatchlist(symbol, watchlistId)) {
+                        updateStockData(getActiveWatchlist().symbols.find(s => s.symbol === symbol)).then(() => {
+                            renderWatchlist();
+                        });
+                    }
                 }
                 document.body.removeChild(dialog);
+            }
+        });
+
+        // Cleanup event listeners when dialog is closed
+        function cleanup() {
+            document.removeEventListener('keydown', handleKeyChange);
+            document.removeEventListener('keyup', handleKeyChange);
+        }
+
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                document.body.removeChild(dialog);
+                cleanup();
             }
         });
 
@@ -427,6 +496,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to update header timestamp
     function updateHeaderTimestamp() {
         const activeWatchlist = getActiveWatchlist();
+        const lastUpdatedSpan = document.querySelector('.header-last-updated');
+        if (!lastUpdatedSpan) return;
+        
         if (activeWatchlist.symbols.length > 0) {
             const mostRecentUpdate = Math.max(...activeWatchlist.symbols.map(stock => stock.lastUpdated || 0));
             if (mostRecentUpdate) {

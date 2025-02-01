@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.perplexity.ai https://*.perplexity.ai https://*.finnhub.io https://*.cloudflare.com; connect-src 'self' https://finnhub.io https://*.cloudflare.com; worker-src blob: 'self'; img-src 'self' data: https://www.perplexity.ai https://*.perplexity.ai https://*.cloudflare.com">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *; worker-src blob: 'self'; img-src * data: blob:">
     <title>Perplexity Finance</title>
     <link rel="stylesheet" href="styles.css">
 </head>

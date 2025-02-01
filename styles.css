@@ -146,6 +146,13 @@ body {
     opacity: 0.8;
 }
 
+.watchlist-management-hint {
+    font-family: var(--font-primary);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
 .watchlist {
     flex: 1;
     overflow-y: auto;
@@ -406,9 +413,51 @@ body {
     justify-content: space-between;
     align-items: center;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .watchlist-option:hover {
     background-color: var(--perplexity-teal);
     color: var(--text-primary);
+}
+
+.watchlist-option.delete-mode {
+    background-color: var(--accent-red);
+    color: var(--text-primary);
+}
+
+.watchlist-option.delete-mode:hover {
+    opacity: 0.8;
+}
+
+.delete-mode-text {
+    display: none;
+    position: absolute;
+    right: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.watchlist-option.delete-mode .delete-mode-text {
+    display: block;
+}
+
+.watchlist-option.delete-mode .symbol-count {
+    display: none;
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.dialog-header h3 {
+    margin-bottom: 0;
+}
+
+.dialog-mode-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
 } 
