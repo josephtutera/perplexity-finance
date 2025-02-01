@@ -54,6 +54,177 @@ function getActiveWatchlist() {
     return watchlists.find(w => w.id === activeWatchlistId) || watchlists[0];
 }
 
+// Function to format numbers with commas
+function formatNumber(number) {
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(number);
+}
+
+// Function to safely load URL in webview
+function loadPerplexityURL(symbol) {
+    const perplexityView = document.getElementById('perplexityView');
+    if (!perplexityView) return;
+    
+    try {
+        const url = `https://www.perplexity.ai/finance/${encodeURIComponent(symbol)}`;
+        // Check if the webview is already navigating to prevent unnecessary reloads
+        if (perplexityView.getAttribute('src') !== url) {
+            perplexityView.setAttribute('src', url);
+        }
+    } catch (error) {
+        console.error('Error loading URL:', error);
+    }
+}
+
+// Function to create a stock item element
+function createStockItem(stock) {
+    const div = document.createElement('div');
+    div.className = 'stock-item';
+    div.innerHTML = `
+        <div class="stock-item-header">
+            <span class="stock-symbol">${stock.symbol}</span>
+            <div class="stock-header-right">
+                <span class="stock-price">$${formatNumber(stock.price)}</span>
+                <button class="remove-button" title="Remove ${stock.symbol}">×</button>
+            </div>
+        </div>
+        <div class="stock-item-details">
+            <span class="stock-name">${stock.name}</span>
+            <span class="stock-change ${stock.changePercentage >= 0 ? 'positive' : 'negative'}">
+                ${stock.changePercentage >= 0 ? '+' : ''}${stock.changePercentage.toFixed(2)}%
+            </span>
+        </div>
+        <div class="stock-price-details">
+            <div class="price-summary">
+                <span class="label">Open:</span>
+                <span class="value">$${formatNumber(stock.open)}</span>
+                <span class="separator">|</span>
+                <span class="label">High:</span>
+                <span class="value">$${formatNumber(stock.high)}</span>
+                <span class="separator">|</span>
+                <span class="label">Low:</span>
+                <span class="value">$${formatNumber(stock.low)}</span>
+            </div>
+        </div>
+    `;
+
+    // Add click handler to load Perplexity Finance in webview
+    div.addEventListener('click', (e) => {
+        // Don't trigger if clicking the remove button
+        if (!e.target.classList.contains('remove-button')) {
+            document.querySelectorAll('.stock-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            div.classList.add('selected');
+            loadPerplexityURL(stock.symbol);
+        }
+    });
+
+    // Add remove button handler
+    const removeButton = div.querySelector('.remove-button');
+    removeButton.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent the click from triggering the stock item click
+        const index = getActiveWatchlist().symbols.findIndex(item => item.symbol === stock.symbol);
+        if (index !== -1) {
+            getActiveWatchlist().symbols.splice(index, 1);
+            saveWatchlists();
+            renderWatchlist();
+        }
+    });
+
+    return div;
+}
+
+// Function to render the watchlist
+function renderWatchlist() {
+    const watchlistContainer = document.getElementById('watchlist');
+    if (!watchlistContainer) return;
+    
+    const activeWatchlist = getActiveWatchlist();
+    watchlistContainer.innerHTML = '';
+    activeWatchlist.symbols.forEach(stock => {
+        watchlistContainer.appendChild(createStockItem(stock));
+    });
+}
+
+// Function to show create watchlist dialog
+function showCreateWatchlistDialog() {
+    const dialog = document.createElement('div');
+    dialog.className = 'watchlist-dialog';
+    dialog.innerHTML = `
+        <div class="dialog-content">
+            <h3>Create New Watchlist</h3>
+            <input type="text" id="watchlistNameInput" placeholder="Enter watchlist name" class="dialog-input">
+            <div class="dialog-buttons">
+                <button id="createWatchlistBtn" class="dialog-button">Create</button>
+                <button id="cancelWatchlistBtn" class="dialog-button">Cancel</button>
+            </div>
+        </div>
+    `;
+
+    // Add event listeners
+    dialog.querySelector('#createWatchlistBtn').addEventListener('click', () => {
+        const nameInput = dialog.querySelector('#watchlistNameInput');
+        const name = nameInput.value.trim();
+        if (name) {
+            createWatchlist(name);
+            document.body.removeChild(dialog);
+        }
+    });
+
+    dialog.querySelector('#cancelWatchlistBtn').addEventListener('click', () => {
+        document.body.removeChild(dialog);
+    });
+
+    dialog.querySelector('#watchlistNameInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const name = e.target.value.trim();
+            if (name) {
+                createWatchlist(name);
+                document.body.removeChild(dialog);
+            }
+        }
+    });
+
+    document.body.appendChild(dialog);
+    dialog.querySelector('#watchlistNameInput').focus();
+}
+
+// Function to render watchlist tabs
+function renderWatchlistTabs() {
+    const watchlistTabsContainer = document.querySelector('.watchlist-tabs');
+    if (!watchlistTabsContainer) return;
+    
+    watchlistTabsContainer.innerHTML = '';
+    watchlists.forEach(watchlist => {
+        const tab = document.createElement('div');
+        tab.className = `watchlist-tab ${watchlist.id === activeWatchlistId ? 'active' : ''}`;
+        tab.innerHTML = `
+            <span class="tab-name">${watchlist.name}</span>
+            <span class="symbol-count">${watchlist.symbols.length}</span>
+        `;
+        tab.addEventListener('click', () => {
+            activeWatchlistId = watchlist.id;
+            renderWatchlistTabs();
+            renderWatchlist();
+        });
+        watchlistTabsContainer.appendChild(tab);
+    });
+    
+    // Re-append the add watchlist button
+    const addWatchlistButton = document.createElement('button');
+    addWatchlistButton.className = 'add-watchlist-button';
+    addWatchlistButton.innerHTML = '+';
+    addWatchlistButton.title = 'Create new watchlist';
+    addWatchlistButton.addEventListener('click', () => {
+        showCreateWatchlistDialog();
+    });
+    watchlistTabsContainer.appendChild(addWatchlistButton);
+}
+
 // Create new watchlist
 function createWatchlist(name) {
     const newWatchlist = {
@@ -173,40 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
     watchlistTabsContainer.className = 'watchlist-tabs';
     document.querySelector('.watchlist-sidebar').insertBefore(watchlistTabsContainer, document.querySelector('.watchlist-header'));
 
-    // Add new watchlist button
-    const addWatchlistButton = document.createElement('button');
-    addWatchlistButton.className = 'add-watchlist-button';
-    addWatchlistButton.innerHTML = '+';
-    addWatchlistButton.title = 'Create new watchlist';
-    watchlistTabsContainer.appendChild(addWatchlistButton);
-
-    // Function to render watchlist tabs
-    function renderWatchlistTabs() {
-        watchlistTabsContainer.innerHTML = '';
-        watchlists.forEach(watchlist => {
-            const tab = document.createElement('div');
-            tab.className = `watchlist-tab ${watchlist.id === activeWatchlistId ? 'active' : ''}`;
-            tab.innerHTML = `
-                <span class="tab-name">${watchlist.name}</span>
-                <span class="symbol-count">${watchlist.symbols.length}</span>
-            `;
-            tab.addEventListener('click', () => {
-                activeWatchlistId = watchlist.id;
-                renderWatchlistTabs();
-                renderWatchlist();
-            });
-            watchlistTabsContainer.appendChild(tab);
-        });
-        watchlistTabsContainer.appendChild(addWatchlistButton);
-    }
-
-    // Add watchlist button click handler
-    addWatchlistButton.addEventListener('click', () => {
-        const name = prompt('Enter watchlist name:');
-        if (name) {
-            createWatchlist(name);
-        }
-    });
+    // Initial render of watchlist tabs
+    renderWatchlistTabs();
 
     // Function to show watchlist selection dialog
     function showWatchlistSelectionDialog(symbol) {
@@ -249,100 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showWatchlistSelectionDialog(symbol);
             searchInput.value = '';
         }
-    }
-
-    // Function to safely load URL in webview
-    function loadPerplexityURL(symbol) {
-        if (!perplexityView) return;
-        
-        try {
-            const url = `https://www.perplexity.ai/finance/${encodeURIComponent(symbol)}`;
-            // Check if the webview is already navigating to prevent unnecessary reloads
-            if (perplexityView.getAttribute('src') !== url) {
-                perplexityView.setAttribute('src', url);
-            }
-        } catch (error) {
-            console.error('Error loading URL:', error);
-        }
-    }
-
-    // Function to format numbers with commas
-    function formatNumber(number) {
-        return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(number);
-    }
-
-    // Function to create a stock item element
-    function createStockItem(stock) {
-        const div = document.createElement('div');
-        div.className = 'stock-item';
-        div.innerHTML = `
-            <div class="stock-item-header">
-                <span class="stock-symbol">${stock.symbol}</span>
-                <div class="stock-header-right">
-                    <span class="stock-price">$${formatNumber(stock.price)}</span>
-                    <button class="remove-button" title="Remove ${stock.symbol}">×</button>
-                </div>
-            </div>
-            <div class="stock-item-details">
-                <span class="stock-name">${stock.name}</span>
-                <span class="stock-change ${stock.changePercentage >= 0 ? 'positive' : 'negative'}">
-                    ${stock.changePercentage >= 0 ? '+' : ''}${stock.changePercentage.toFixed(2)}%
-                </span>
-            </div>
-            <div class="stock-price-details">
-                <div class="price-summary">
-                    <span class="label">Open:</span>
-                    <span class="value">$${formatNumber(stock.open)}</span>
-                    <span class="separator">|</span>
-                    <span class="label">High:</span>
-                    <span class="value">$${formatNumber(stock.high)}</span>
-                    <span class="separator">|</span>
-                    <span class="label">Low:</span>
-                    <span class="value">$${formatNumber(stock.low)}</span>
-                </div>
-            </div>
-        `;
-
-        // Add click handler to load Perplexity Finance in webview
-        div.addEventListener('click', (e) => {
-            // Don't trigger if clicking the remove button
-            if (!e.target.classList.contains('remove-button')) {
-                document.querySelectorAll('.stock-item').forEach(item => {
-                    item.classList.remove('selected');
-                });
-                
-                div.classList.add('selected');
-                loadPerplexityURL(stock.symbol);
-            }
-        });
-
-        // Add remove button handler
-        const removeButton = div.querySelector('.remove-button');
-        removeButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent the click from triggering the stock item click
-            const index = getActiveWatchlist().symbols.findIndex(item => item.symbol === stock.symbol);
-            if (index !== -1) {
-                getActiveWatchlist().symbols.splice(index, 1);
-                saveWatchlists();
-                renderWatchlist();
-            }
-        });
-
-        return div;
-    }
-
-    // Function to render the watchlist
-    function renderWatchlist() {
-        if (!watchlistContainer) return;
-        
-        const activeWatchlist = getActiveWatchlist();
-        watchlistContainer.innerHTML = '';
-        activeWatchlist.symbols.forEach(stock => {
-            watchlistContainer.appendChild(createStockItem(stock));
-        });
     }
 
     // Function to update stock data
@@ -401,7 +446,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initial render
-    renderWatchlistTabs();
     renderWatchlist();
     updateAllStocks();
 
