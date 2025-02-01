@@ -329,6 +329,9 @@ document.addEventListener('DOMContentLoaded', () => {
             stock.low = quote.l;
             stock.open = quote.o;
             stock.lastUpdated = Date.now();
+            
+            // Save after updating stock data
+            saveWatchlists();
         } catch (error) {
             console.error('Error updating stock data:', error);
         }
@@ -341,6 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const stock of activeWatchlist.symbols) {
             await updateStockData(stock);
         }
+        saveWatchlists(); // Save after all updates are complete
         renderWatchlist();
         updateHeaderTimestamp();
     }
@@ -399,5 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (updateInterval) {
             clearInterval(updateInterval);
         }
+        saveWatchlists(); // Save one final time before closing
     });
 }); 
